@@ -7,6 +7,7 @@
       <sourceFolder url="file://$MODULE_DIR$/enum_cycling_der/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/enum_cycling_derive/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/example/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/tests/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />

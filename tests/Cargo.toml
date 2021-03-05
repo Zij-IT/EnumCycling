@@ -1,5 +1,5 @@
 [package]
-name = "example"
+name = "tests"
 version = "0.1.0"
 authors = ["Zij-IT <elijah.reed@hartvigsen.xyz>"]
 edition = "2018"
@@ -8,5 +8,3 @@ edition = "2018"
 
 [dependencies]
 enum_cycling = { path = "../enum_cycling"}
-strum = "0.20"
-strum_macros = "0.20.1"

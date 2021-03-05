@@ -45,7 +45,7 @@ fn valid_variants(data: &Data) -> ::std::result::Result<Vec<&Variant>, (Span, &'
                 .filter(|x| {
                     for att in &x.attrs {
                         for seg in &att.path.segments {
-                            if seg.ident.to_string() == "skip" {
+                            if seg.ident == "skip" {
                                 return false;
                             }
                         }
@@ -70,8 +70,8 @@ fn valid_variants(data: &Data) -> ::std::result::Result<Vec<&Variant>, (Span, &'
 
 fn variant_matches(variants: &[&Variant], mode: Mode) -> TokenStream {
     let (skip_amt, func_name) = match mode {
-        Mode::Up => (1, Ident::new("up", Span::call_site())),
-        Mode::Down => (variants.len(), Ident::new("down", Span::call_site())),
+        Mode::Up => (variants.len() - 1, Ident::new("up", Span::call_site())),
+        Mode::Down => (1, Ident::new("down", Span::call_site())),
     };
 
     let arms = variants

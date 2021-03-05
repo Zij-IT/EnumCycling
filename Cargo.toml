@@ -1,2 +1,2 @@
 [workspace]
-members=["example", "enum_cycling"]
+members=["enum_cycling_derive", "enum_cycling", "tests"]
