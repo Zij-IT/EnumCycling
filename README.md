@@ -1,9 +1,7 @@
 # Enum Cycling
-***
 Enum Cycling is just a single macro that aims to make working with enums easier in Rust.
 
 # Including in a Project
-***
 Import enum_cycling into your project by adding this line to your
 Cargo.toml.
 
@@ -17,7 +15,6 @@ Cargo.toml.
 ```                                                                 
 
 # Enum Cycling Macros
-***
 Enum Cycling has implemented these macros:
 
 | Macro | Description |
