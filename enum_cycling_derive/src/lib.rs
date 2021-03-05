@@ -1,9 +1,6 @@
 use proc_macro2::{Span, TokenStream};
-use quote::{quote, quote_spanned};
-use syn::spanned::Spanned;
-use syn::{Data, DeriveInput, Ident, Variant, Fields};
-use std::env::var;
-use syn::token::Token;
+use quote::quote;
+use syn::{spanned::Spanned, Data, DeriveInput, Fields, Ident, Variant};
 
 enum Mode {
     Up,
@@ -72,53 +69,48 @@ fn valid_variants(data: &Data) -> ::std::result::Result<Vec<&Variant>, (Span, &'
 }
 
 fn variant_matches(variants: &[&Variant], mode: Mode) -> TokenStream {
-    let mut arms = Vec::new();
-
     let (skip_amt, func_name) = match mode {
         Mode::Up => (1, Ident::new("up", Span::call_site())),
         Mode::Down => (variants.len(), Ident::new("down", Span::call_site())),
     };
 
-    let true_vars = variants.
-        iter()
+    let arms = variants
+        .iter()
         .zip(variants.iter().cycle().skip(skip_amt))
-        .map(|(&from, &to)| (from, to))
-        .collect::<Vec<_>>();
+        .map(|(&left, &right)| {
+            let l_ident = &left.ident;
+            let r_ident = &right.ident;
 
-    for (left, right) in &*true_vars {
-        let l_ident = &left.ident;
-        let r_ident = &right.ident;
+            let l_params = match &left.fields {
+                Fields::Unit => quote! {},
+                Fields::Unnamed(_) => {
+                    quote! {(..)}
+                }
+                Fields::Named(_) => {
+                    quote! {{..}}
+                }
+            };
 
-        let l_params = match &left.fields {
-            Fields::Unit => quote!{},
-            Fields::Unnamed(_) => {
-                quote!{(..)}
+            let r_params = match &right.fields {
+                Fields::Unit => quote! {},
+                Fields::Unnamed(fields) => {
+                    let defaults =
+                        ::std::iter::repeat(quote!(Default::default())).take(fields.unnamed.len());
+                    quote! {(#(#defaults),*)}
+                }
+                Fields::Named(fields) => {
+                    let fields = fields
+                        .named
+                        .iter()
+                        .map(|field| field.ident.as_ref().unwrap());
+                    quote! {{#(#fields: Default::default()), *}}
+                }
+            };
+
+            quote! {
+                Self::#l_ident #l_params => Self::#r_ident #r_params
             }
-            Fields::Named(_) => {
-                quote!{{..}}
-            }
-        };
-
-        let r_params = match &right.fields {
-            Fields::Unit => quote!{},
-            Fields::Unnamed(fields) => {
-                let defaults = ::std::iter::repeat(quote!(
-                    Default::default()
-                )).take(fields.unnamed.len());
-                quote!{(#(#defaults),*)}
-            }
-            Fields::Named(fields) => {
-                let fields = fields.named.iter().map(|field| field.ident.as_ref().unwrap());
-                quote!{{#(#fields: Default::default()), *}}
-            }
-        };
-
-        let quote = quote! {
-            Self::#l_ident #l_params => Self::#r_ident #r_params
-        };
-
-        arms.push(quote);
-    }
+        });
 
     quote! {
         fn #func_name(&self) -> Self {
