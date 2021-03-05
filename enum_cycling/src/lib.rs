@@ -7,15 +7,14 @@
 //!
 //! # How to include Enum Cycling
 //!
-//! Import enum_cycling into your project by adding these lines to your
+//! Import enum_cycling into your project by adding this line to your
 //! Cargo.toml.
 //!
 //! ```toml
 //! [dependencies]
 //! enum_cycling = "0.1.0"
+//! enum_cycling_derive = "0.1.0"
 //!```
-
-pub use enum_cycling_derive::*;
 
 /// This trait is the central piece to move up and down an `Enum`.
 /// It may auto generated for you using the `#[derive(EnumCycle]`
@@ -63,3 +62,6 @@ pub trait EnumCycle {
     fn up(&self) -> Self;
     fn down(&self) -> Self;
 }
+
+#[cfg(feature = "derive")]
+pub use enum_cycling_derive::EnumCycle;
