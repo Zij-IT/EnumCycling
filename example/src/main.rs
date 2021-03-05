@@ -1,16 +1,17 @@
 use enum_cycling::EnumCycle;
 
-#[derive(PartialEq, EnumCycle)]
+#[derive(Debug, PartialEq, EnumCycle)]
 enum Alphabet {
-    A,
+    #[skip]
+    A(i32, i32),
     B,
-    C,
+    C {c : i32},
+    D,
 }
 
 fn main() {
-    assert!(Alphabet::A.up() == Alphabet::B);
-    assert!(Alphabet::C.up() == Alphabet::A);
-    assert!(Alphabet::C.down() == Alphabet::B);
-    assert!(Alphabet::C.down() == Alphabet::A.up());
-    assert!(Alphabet::A.up().up().up() == Alphabet::A.down().up());
+    assert_ne!(Alphabet::A(i32::default(), i32::default()), Alphabet::B.up());
+    assert_eq!(Alphabet::B.up(), Alphabet::C{c: 1}.down());
+    assert_eq!(Alphabet::D.up(), Alphabet::B.down());
+    Alphabet::A(i32::default(), i32::default()).up();
 }

@@ -8,3 +8,5 @@ edition = "2018"
 
 [dependencies]
 enum_cycling = { path = "../enum_cycling"}
+strum = "0.20"
+strum_macros = "0.20.1"
