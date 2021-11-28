@@ -47,8 +47,14 @@ fn non_skipped_variants(data: &Data) -> ::syn::Result<Vec<&Variant>> {
                 ))
             }
         }
-        Data::Struct(s) => Err(::syn::Error::new(s.struct_token.span(), "This macro only supports enums.")),
-        Data::Union(u) => Err(::syn::Error::new(u.union_token.span(), "This macro only supports enums.")),
+        Data::Struct(s) => Err(::syn::Error::new(
+            s.struct_token.span(),
+            "This macro only supports enums.",
+        )),
+        Data::Union(u) => Err(::syn::Error::new(
+            u.union_token.span(),
+            "This macro only supports enums.",
+        )),
     }
 }
 
