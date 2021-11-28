@@ -91,4 +91,16 @@ mod tests {
             }
         );
     }
+
+    #[test]
+    #[should_panic(expected = "Unable to call \"up\" fn on a skipped variant")]
+    fn bad_up_call() {
+        SkipAlphabet::A.up();
+    }
+
+    #[test]
+    #[should_panic(expected = "Unable to call \"down\" fn on a skipped variant")]
+    fn bad_down_call() {
+        SkipAlphabet::A.down();
+    }
 }
