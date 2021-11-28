@@ -7,15 +7,11 @@ enum Mode {
     Down,
 }
 
-pub fn enum_cycle_inner(input: &DeriveInput) -> syn::Result<TokenStream> {
+pub fn enum_cycle_inner(input: &DeriveInput) -> ::syn::Result<TokenStream> {
     let name = &input.ident;
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
 
-    let variants = match valid_variants(&input.data) {
-        Ok(vars) => vars,
-        Err(e) => return Err(syn::Error::new(e.0, e.1)),
-    };
-
+    let variants = non_skipped_variants(&input.data)?;
     let up = variant_matches(&variants, Mode::Up);
     let down = variant_matches(&variants, Mode::Down);
 
@@ -27,35 +23,32 @@ pub fn enum_cycle_inner(input: &DeriveInput) -> syn::Result<TokenStream> {
     })
 }
 
-fn valid_variants(data: &Data) -> ::std::result::Result<Vec<&Variant>, (Span, &'static str)> {
+fn non_skipped_variants(data: &Data) -> ::syn::Result<Vec<&Variant>> {
     match data {
         Data::Enum(en) => {
             let variants = en
                 .variants
                 .iter()
                 .filter(|x| {
-                    for att in &x.attrs {
-                        for seg in &att.path.segments {
-                            if seg.ident == "skip" {
-                                return false;
-                            }
-                        }
-                    }
-                    true
+                    !x.attrs
+                        .iter()
+                        .map(|attr| attr.path.segments.iter())
+                        .flatten()
+                        .any(|seg| seg.ident == "skip")
                 })
                 .collect::<Vec<_>>();
 
-            if variants.len() < 2 {
-                return Err((
+            if variants.len() > 1 {
+                Ok(variants)
+            } else {
+                Err(syn::Error::new(
                     en.enum_token.span(),
                     "EnumCycle requires that the enum have at least 2 non-skipped variants.",
-                ));
+                ))
             }
-
-            Ok(variants)
         }
-        Data::Struct(s) => Err((s.struct_token.span(), "This macro only supports enums.")),
-        Data::Union(u) => Err((u.union_token.span(), "This macro only supports enums.")),
+        Data::Struct(s) => Err(::syn::Error::new(s.struct_token.span(), "This macro only supports enums.")),
+        Data::Union(u) => Err(::syn::Error::new(u.union_token.span(), "This macro only supports enums.")),
     }
 }
 
@@ -103,11 +96,13 @@ fn variant_matches(variants: &[&Variant], mode: Mode) -> TokenStream {
             }
         });
 
+    let name = func_name.to_string();
+
     quote! {
         fn #func_name(&self) -> Self {
             match *self {
                 #(#arms),*,
-                _ => panic!("Unable to call \"up\" fn on a skipped variant"),
+                _ => panic!("Unable to call \"{}\" fn on a skipped variant", #name),
             }
         }
     }
