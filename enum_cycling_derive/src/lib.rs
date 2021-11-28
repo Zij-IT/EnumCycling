@@ -2,6 +2,7 @@
 //!
 //! Enum Cycling is a crate that allows one to
 //! more easily navigate enums in Rust.
+#![allow(clippy::pedantic)]
 
 mod enum_cycle;
 
