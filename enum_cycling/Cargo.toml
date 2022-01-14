@@ -1,6 +1,6 @@
 [package]
 name = "enum_cycling"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Zij-IT <elijah.reed@hartvigsen.xyz>"]
 edition = "2018"
 license= "MIT"
