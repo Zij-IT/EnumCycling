@@ -11,9 +11,23 @@ pub fn enum_cycle_inner(input: &DeriveInput) -> ::syn::Result<TokenStream> {
     let name = &input.ident;
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
 
-    let variants = non_skipped_variants(&input.data)?;
-    let up = variant_matches(&variants, Mode::Up);
-    let down = variant_matches(&variants, Mode::Down);
+    let non_skipped_variants = non_skipped_variants(&input.data)?;
+
+    if non_skipped_variants.is_empty() {
+        return Err(syn::Error::new(
+            input.span(),
+            "EnumCycle requires that the enum have at least 1 non-skipped variant.",
+        ));
+    }
+
+    let cycle_variants = if let Some(cycle_path) = get_cycle_path(input) {
+        ident_path_to_variants(cycle_path, non_skipped_variants)?
+    } else {
+        non_skipped_variants
+    };
+
+    let up = simple_path(&cycle_variants, Mode::Up);
+    let down = simple_path(&cycle_variants, Mode::Down);
 
     Ok(quote! {
         impl #impl_generics EnumCycle for #name #ty_generics #where_clause {
@@ -25,28 +39,17 @@ pub fn enum_cycle_inner(input: &DeriveInput) -> ::syn::Result<TokenStream> {
 
 fn non_skipped_variants(data: &Data) -> ::syn::Result<Vec<&Variant>> {
     match data {
-        Data::Enum(en) => {
-            let variants = en
-                .variants
-                .iter()
-                .filter(|x| {
-                    !x.attrs
-                        .iter()
-                        .map(|attr| attr.path.segments.iter())
-                        .flatten()
-                        .any(|seg| seg.ident == "skip")
-                })
-                .collect::<Vec<_>>();
-
-            if variants.len() > 1 {
-                Ok(variants)
-            } else {
-                Err(syn::Error::new(
-                    en.enum_token.span(),
-                    "EnumCycle requires that the enum have at least 2 non-skipped variants.",
-                ))
-            }
-        }
+        Data::Enum(en) => Ok(en
+            .variants
+            .iter()
+            .filter(|x| {
+                !x.attrs
+                    .iter()
+                    .map(|attr| attr.path.segments.iter())
+                    .flatten()
+                    .any(|seg| seg.ident == "skip")
+            })
+            .collect::<Vec<_>>()),
         Data::Struct(s) => Err(::syn::Error::new(
             s.struct_token.span(),
             "This macro only supports enums.",
@@ -58,7 +61,52 @@ fn non_skipped_variants(data: &Data) -> ::syn::Result<Vec<&Variant>> {
     }
 }
 
-fn variant_matches(variants: &[&Variant], mode: Mode) -> TokenStream {
+fn get_cycle_path(input: &DeriveInput) -> Option<Vec<Ident>> {
+    use proc_macro2::TokenTree;
+
+    input
+        .attrs
+        .iter()
+        .find(|a| a.path.segments.iter().any(|s| s.ident == "cycle"))
+        .and_then(|attr| {
+            attr.tokens
+                .clone()
+                .into_iter()
+                .next()
+                .and_then(|tt| match tt {
+                    TokenTree::Group(g) => Some(
+                        g.stream()
+                            .into_iter()
+                            .filter_map(|x| match x {
+                                TokenTree::Ident(x) => Some(x),
+                                _ => None,
+                            })
+                            .collect(),
+                    ),
+                    _ => None,
+                })
+        })
+}
+
+fn ident_path_to_variants(
+    cycle_path: Vec<Ident>,
+    variants: Vec<&Variant>,
+) -> ::syn::Result<Vec<&Variant>> {
+    cycle_path
+        .iter()
+        .map(|x| -> syn::Result<&Variant> {
+            variants
+                .iter()
+                .find(|&&y| y.ident == *x)
+                .copied()
+                .ok_or_else(|| {
+                    syn::Error::new(x.span(), &format!("No matching variant found for {}.", x))
+                })
+        })
+        .collect()
+}
+
+fn simple_path(variants: &[&Variant], mode: Mode) -> TokenStream {
     let (skip_amt, func_name) = match mode {
         Mode::Up => (variants.len() - 1, Ident::new("up", Span::call_site())),
         Mode::Down => (1, Ident::new("down", Span::call_site())),

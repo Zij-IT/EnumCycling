@@ -19,7 +19,7 @@ use syn::DeriveInput;
 /// Calling up / down on a variant that was skipped will result
 /// in a panic.
 
-#[proc_macro_derive(EnumCycle, attributes(skip))]
+#[proc_macro_derive(EnumCycle, attributes(skip, cycle))]
 pub fn derive_enum_cycle(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = syn::parse_macro_input!(input as DeriveInput);
     let tokens = enum_cycle::enum_cycle_inner(&input).unwrap_or_else(|err| err.to_compile_error());
