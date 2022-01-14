@@ -17,8 +17,8 @@
 //!```
 
 /// This trait is the central piece to move up and down an `Enum`.
-/// It may auto generated for you using the `#[derive(EnumCycle]`
-/// feature.
+/// By using `#[derive(EnumCycle]` you can save yourself the hassle of
+/// having to write the implementation.
 ///
 /// # Example
 ///
@@ -29,12 +29,34 @@
 /// #[derive(PartialEq, Debug, EnumCycle)]
 /// enum MainMenu {
 ///     NewGame,
+///
+///     #[skip]
+///     Secret,
+///
 ///     Continue,
 ///     Quit,
 /// }
 ///
 /// fn main() {
 ///     assert_eq!(MainMenu::NewGame.down(), MainMenu::Continue);
+/// }
+/// ```
+///
+/// Additionally, you may use the 'cycle' attribute in order to keep
+/// the order of your cycle independant from the enum Variant order.
+/// This allows you to keep your enum variants alphabetically sorted,
+/// while also using EnumCycle.
+///
+/// ```rust
+/// use enum_cycling::EnumCycle;
+///
+/// #[derive(PartialEq, Debug, EnumCycle)]
+/// #[cycle(NewGame, Continue, Quit)]
+/// enum MainMenu {
+///     Continue,
+///     NewGame,
+///     Quit,
+///     Secret,
 /// }
 /// ```
 ///
@@ -47,6 +69,7 @@
 ///             Self::NewGame => Self::Quit,
 ///             Self::Continue => Self::NewGame,
 ///             Self::Quit => Self::Continue,
+///             _ => panic!("Unable to call 'up' on a skipped variant"),
 ///         }
 ///     }
 ///     fn down(&self) -> Self {
@@ -54,6 +77,7 @@
 ///             Self::NewGame => Self::Continue,
 ///             Self::Continue => Self::Quit,
 ///             Self::Quit => Self::NewGame,
+///             _ => panic!("Unable to call 'down' on a skipped variant"),
 ///         }
 ///     }
 /// }
