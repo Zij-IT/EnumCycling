@@ -7,11 +7,11 @@ Cargo.toml.
 
  ```toml
  [dependencies]
- enum_cycling = "0.1.0"
- enum_cycling_derive = "0.1.0"
+ enum_cycling = "0.1.1"
+ enum_cycling_derive = "0.2.0"
 
  # You can also just use the "derive" feature
- # enum_cycling = { version = "0.1.0", features = ["derive"]}
+ # enum_cycling = { version = "0.1.1", features = ["derive"]}
 ```
 # Enum Cycling Macros
 Enum Cycling has implemented these macros:
