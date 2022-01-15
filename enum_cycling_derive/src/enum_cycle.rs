@@ -30,7 +30,7 @@ pub fn enum_cycle_inner(input: &DeriveInput) -> ::syn::Result<TokenStream> {
     let down = simple_path(&cycle_variants, Mode::Down);
 
     Ok(quote! {
-        impl #impl_generics EnumCycle for #name #ty_generics #where_clause {
+        impl #impl_generics ::enum_cycling::EnumCycle for #name #ty_generics #where_clause {
             #up
             #down
         }
@@ -133,7 +133,7 @@ fn simple_path(variants: &[&Variant], mode: Mode) -> TokenStream {
                 Fields::Unit => quote! {},
                 Fields::Unnamed(fields) => {
                     let defaults =
-                        ::std::iter::repeat(quote!(Default::default())).take(fields.unnamed.len());
+                        ::std::iter::repeat(quote!(::std::default::Default::default())).take(fields.unnamed.len());
                     quote! {(#(#defaults),*)}
                 }
                 Fields::Named(fields) => {
@@ -141,7 +141,7 @@ fn simple_path(variants: &[&Variant], mode: Mode) -> TokenStream {
                         .named
                         .iter()
                         .map(|field| field.ident.as_ref().unwrap());
-                    quote! {{#(#fields: Default::default()), *}}
+                    quote! {{#(#fields: ::std::default::Default::default()), *}}
                 }
             };
 
@@ -156,7 +156,7 @@ fn simple_path(variants: &[&Variant], mode: Mode) -> TokenStream {
         fn #func_name(&self) -> Self {
             match *self {
                 #(#arms),*,
-                _ => panic!("Unable to call \"{}\" fn on a skipped variant", #name),
+                _ => ::std::panic!("Unable to call \"{}\" fn on a skipped variant", #name),
             }
         }
     }
