@@ -1,6 +1,6 @@
 [package]
 name = "enum_cycling"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Zij-IT <elijah.reed@hartvigsen.xyz>"]
 edition = "2018"
 license= "MIT"
@@ -13,10 +13,10 @@ repository = "https://github.com/Zij-IT/EnumCycling"
 readme = "../README.md"
 
 [dependencies]
-enum_cycling_derive = { path = "../enum_cycling_derive", optional = true, version = "0.2.0"}
+enum_cycling_derive = { path = "../enum_cycling_derive", optional = true, version = "0.2.1"}
 
 [dev-dependencies]
-enum_cycling_derive = { path = "../enum_cycling_derive", version = "0.2.0"}
+enum_cycling_derive = { path = "../enum_cycling_derive", version = "0.2.1"}
 
 [features]
 derive = ["enum_cycling_derive"]
